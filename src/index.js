@@ -4,6 +4,9 @@ const extractTextures = require('./extractors/textures')
 const loadS3D = require('./loaders/s3d')
 const convertS3D = require('./convertor')
 
+const inDir = './zones'
+const outDir = './graphics'
+
 function convertDir(dir, out) {
   try {
     fs.statSync(out)
@@ -41,18 +44,9 @@ function convertDir(dir, out) {
       await extractTextures(s3dName, type, s3d, outdir).then(value => {
         console.log('done extracting textures')
       })
-      queue.push({s3dName, type, s3d, out: outdir})
+      await convertS3D(s3dName, type, s3d, outdir)
     }
-    await processConvertQueue(queue, dir)
   })
 }
 
-async function processConvertQueue(queue, dir) {
-  for (let file of queue) {
-    await convertS3D(file.s3dName, file.type, file.s3d, `${file.out}`)
-  }
-}
-
-module.exports = {
-  convertDir
-}
+convertDir(inDir, outDir)

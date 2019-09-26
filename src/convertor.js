@@ -1,3 +1,4 @@
+const fs = require('fs')
 const THREE = require('three')
 const GLTFExporter = require('./extractors/gltf')
 const loadWLD = require('./loaders/wld')
@@ -27,7 +28,6 @@ module.exports = async function convertS3D(s3dName, type, s3d, out) {
 }
 
 async function convertZoneToglTF(zoneName, s3d, out) {
-  parentPort.postMessage({type: "log", message: `Converting ${zoneName}`})
   let wld = s3d.files[`${zoneName}.wld`]
   let obj = s3d.files['objects.wld']
   let zone = loadWLD(wld)
@@ -77,7 +77,6 @@ async function convertZoneToglTF(zoneName, s3d, out) {
 }
 
 async function convertObjToglTFs(zoneName, s3d, out) {
-  parentPort.postMessage({type: "log", message: `Converting ${zoneName}_obj`})
   let wld = s3d.files[`${zoneName}_obj.wld`]
   let zone = loadWLD(wld)
   let scene = new THREE.Scene()
@@ -105,7 +104,6 @@ async function convertObjToglTFs(zoneName, s3d, out) {
 }
 
 async function convertChrToglTFs(zoneName, s3d, out) {
-  parentPort.postMessage({type: "log", message: `Converting ${zoneName}_chr`})
   let wld = zoneName.indexOf('gequip') !== -1 ? s3d.files[`${zoneName}.wld`] : s3d.files[`${zoneName}_chr.wld`]
   let zone = loadWLD(wld)
   let zoneKeys = Object.keys(zone)
