@@ -1,0 +1,21 @@
+{
+  "name": "visual-eq-gltf-exporter",
+  "version": "1.0.0",
+  "main": "src/server/index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "canvas": "^2.5.0",
+    "dxt-js": "^0.0.3",
+    "jimp": "^0.6.4",
+    "three": "^0.106.2",
+    "vblob": "^1.0.2"
+  },
+  "devDependencies": {
+    "concurrently": "^4.1.2",
+    "nodemon": "^1.19.2",
+    "standard": "^14.3.1"
+  }
+}
