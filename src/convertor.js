@@ -140,7 +140,8 @@ async function convertChrToglTFs(zoneName, s3d, out) {
         let mesh = loadMesh(zone[mesh0.mesh], zone, materialCache, imageCache)
         scene.add(mesh)
       }
-      await convertToGltf(scene, out, raceCode, 2)
+      let data = await convertToGltf(scene, out, raceCode, 2)
+      if (data) exportCharModelSpecs(raceCode, data, out)
     }
   }
 }
@@ -166,19 +167,26 @@ function walkSkeleton(chr, entries, bone, parentShift = new THREE.Vector3(), par
 }
 
 async function convertToGltf(scene, out, zoneName, type) {
-  await new Promise((resolve) => {
+  return await new Promise((resolve, reject) => {
     const exporter = new GLTFExporter()
     exporter.parse(scene, gltf => {
-      fs.writeFileSync(`${out}/${zoneName}${type === 2 ? '_chr' : type === 1 ? '_obj' : ''}.glb`, Buffer.from(gltf))
-      resolve()
+      if (gltf instanceof ArrayBuffer) {
+        fs.writeFileSync(`${out}/${zoneName}${type === 2 ? '_chr' : type === 1 ? '_obj' : ''}.glb`, Buffer.from(gltf))
+        resolve(gltf)
+      } else {
+        reject(`${zoneName} has no data`)
+      }
     }, {
       embedImages: false,
       binary: true
     })
+  }).catch(err => {
+    console.error(err)
   })
 }
 
 async function exportCharModelSpecs(raceCode, data, out) {
+  console.log(`Exporting ${raceCode} Model Specs`)
   try {
     let files = fs.readdirSync(path.join(out, 'textures'))
     const buf = Buffer.from(data)
@@ -238,7 +246,6 @@ async function exportCharModelSpecs(raceCode, data, out) {
       maxBody,
       imageSpecs
     }
-    console.log(`${out}/${raceCode}.json`)
     fs.writeFileSync(`${out}/${raceCode}.json`, JSON.stringify(modelSpec))
   } catch(err) {
     throw new Error(err)
