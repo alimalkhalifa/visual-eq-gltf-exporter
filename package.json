@@ -5,7 +5,8 @@
   "license": "MIT",
   "scripts": {
     "start": "node src/index.js",
-    "dev": "npx nodemon src/index.js"
+    "dev": "npx nodemon src/index.js --ext js",
+    "debug": "node  --inspect-brk src/index.js"
   },
   "dependencies": {
     "canvas": "^2.5.0",

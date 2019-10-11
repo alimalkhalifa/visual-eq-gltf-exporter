@@ -1,5 +1,6 @@
 const THREE = require('three')
 const { Image } = require('canvas')
+const BufferGeometryUtils = require('../utils/BufferGeometryUtils')
 
 module.exports = function loadMesh(fragment, wld, materialCache, imageCache, skeletonEntries = []) {
   if (fragment.type !== "Mesh") {
@@ -144,7 +145,8 @@ module.exports = function loadMesh(fragment, wld, materialCache, imageCache, ske
       transparent: true
     })
   }
-  let mesh = new THREE.Mesh(geometry, materials)
+  let merged = BufferGeometryUtils.mergeVertices(geometry, 1e-2)
+  let mesh = new THREE.Mesh(merged, materials)
   mesh.name = fragment.name
   return mesh
 }

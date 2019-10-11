@@ -171,7 +171,7 @@ async function convertToGltf(scene, out, zoneName, type) {
     const exporter = new GLTFExporter()
     exporter.parse(scene, gltf => {
       if (gltf instanceof ArrayBuffer) {
-        fs.writeFileSync(`${out}/${zoneName}${type === 2 ? '_chr' : type === 1 ? '_obj' : ''}.glb`, Buffer.from(gltf))
+        fs.writeFileSync(`${out}/${zoneName}${type === 1 ? '_obj' : ''}.glb`, Buffer.from(gltf))
         resolve(gltf)
       } else {
         reject(`${zoneName} has no data`)

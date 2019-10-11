@@ -17,7 +17,6 @@ function convertDir(dir, out) {
   fs.readdir(dir, async (err, files) => {
     if (err) throw new Error(err)
     let s3dfiles = files.filter(val => val.indexOf('.s3d') !== -1)
-    let queue = []
     for(let file of s3dfiles) {
       let s3dName = path.basename(file)
       s3dName = s3dName.indexOf('_') !== -1 ? s3dName.substr(0,s3dName.indexOf('_')) : s3dName.substr(0,s3dName.indexOf('.'))
