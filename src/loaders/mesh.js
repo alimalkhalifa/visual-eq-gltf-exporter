@@ -28,7 +28,7 @@ module.exports = function loadMesh(fragment, wld, materialCache, imageCache, ske
       for (let i = 0; i < piece.vertexCount; i++) {
         let vertex = fragment.vertices[vertexPiecesCursor]
         let v = new THREE.Vector3(vertex.x, vertex.y, vertex.z).multiplyScalar(1.0 / (1 << fragment.scale))
-        v.applyEuler(skelPiece.rot).add(skelPiece.shift)
+        v.applyEuler(skelPiece.rot[0]).add(skelPiece.shift[0])
         v.divideScalar(1.0 / (1 << fragment.scale))
         fragment.vertices[vertexPiecesCursor] = {x: v.x, y: v.y, z: v.z}
         vertexPiecesCursor++

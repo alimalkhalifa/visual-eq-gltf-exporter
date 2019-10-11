@@ -103,6 +103,7 @@ async function convertChrToglTFs(zoneName, s3d, out) {
   let materialCache = {}
   let imageCache = {}
   let meshes = []
+  let anims = []
   for (let fragIndex in zone) {
     let fragment = zone[fragIndex]
     let mesh0
@@ -110,19 +111,32 @@ async function convertChrToglTFs(zoneName, s3d, out) {
       let raceCode = fragment.name.substr(0, fragment.name.indexOf('_'))
       mesh0 = zone[fragment.meshReferences[0]]
       let entries = []
-      if (mesh0.type === "SkeletonTrackRef") {
-        
-      }
       let scene = new THREE.Scene()
       if (mesh0.type === "SkeletonTrackRef") {
         let skeletonFragment = zone[fragment.meshReferences[0]] && zone[fragment.meshReferences[0]].skeletonTrack && zone[zone[fragment.meshReferences[0]].skeletonTrack]
         entries = skeletonFragment && skeletonFragment.entries
         if (entries.length > 0) {
+          for (let e of entries) {
+            let f = zone[zone[e.Fragment1].skeletonPieceTrack]
+            for (let sfi in zone) {
+              let sf = zone[sfi]
+              if (sf.type === "SkeletonPieceTrack" && sf.name.indexOf(f.name) > 0) {
+                let name = sf.name.substr(0, 3)
+                if (anims.indexOf(name) === -1) anims.push(name)
+              }
+            }
+          }
           let stem = entries[0]
           walkSkeleton(zone, entries, stem)
+          console.log(`[${raceCode}] Base anim processing done`)
+          for (let a of anims) {
+            walkSkeleton(zone, entries, stem, a)
+            console.log(`[${raceCode}] Anim ${a} processing done`)
+          }
         }
         let group = new THREE.Group()
         group.name = raceCode
+        group.userData.animations = anims
         let rootName =  zone[mesh0.skeletonTrack].name.substr(0, zone[mesh0.skeletonTrack].name.indexOf('_'))
         for (let fragIndex2 in zone) {
           let f = zone[fragIndex2]
@@ -146,20 +160,37 @@ async function convertChrToglTFs(zoneName, s3d, out) {
   }
 }
 
-function walkSkeleton(chr, entries, bone, parentShift = new THREE.Vector3(), parentRot = new THREE.Euler(0, 0, 0, 'YXZ')) {
+function walkSkeleton(chr, entries, bone, anim = "", parentShift = null, parentRot = null) {
   let pieceRef = chr[bone.Fragment1]
   let piece = chr[pieceRef.skeletonPieceTrack]
-  piece.shift = new THREE.Vector3(piece.shiftX[0], piece.shiftY[0], piece.shiftZ[0]).divideScalar(piece.shiftDenominator[0])
-  piece.shift.applyEuler(parentRot)
-  piece.shift.add(parentShift)
-  let rotVector = new THREE.Vector3(piece.rotateX[0], piece.rotateY[0], piece.rotateZ[0]).divideScalar(piece.rotateDenominator).multiplyScalar(Math.PI / 2)
-  rotVector.add(parentRot.toVector3())
-  piece.rot = new THREE.Euler().setFromVector3(rotVector, 'YXZ')
+  if (anim !== "") {
+    for (let fi in chr) {
+      let f = chr[fi]
+      if (f.type === "SkeletonPieceTrack" && f.name.indexOf(`${anim}${piece.name}`) !== -1) {
+        piece = f
+      }
+    }
+  }
+  piece.shift = []
+  piece.rot = []
+  for (let i = 0; i < piece.size; i++) {
+    let pi = i
+    if (parentRot && parentRot.length <= pi) pi = parentRot.length - 1
+    let shift = new THREE.Vector3(piece.shiftX[i], piece.shiftY[i], piece.shiftZ[i]).divideScalar(piece.shiftDenominator[i])
+    if (parentRot) shift.applyEuler(parentRot[pi])
+    if (parentShift) shift.add(parentShift[pi])
+    piece.shift.push(shift)
+    let rotVector = new THREE.Vector3(piece.rotateX[i], piece.rotateY[i], piece.rotateZ[i]).divideScalar(piece.rotateDenominator[i]).multiplyScalar(Math.PI / 2)
+    if (parentRot) rotVector.add(parentRot[pi].toVector3())
+    let rot = new THREE.Euler().setFromVector3(rotVector, 'YXZ')
+    piece.rot.push(rot)
+  }
   for (let b of bone.Data) {
     walkSkeleton(
       chr,
       entries,
       entries[b],
+      anim,
       piece.shift,
       piece.rot
     )
