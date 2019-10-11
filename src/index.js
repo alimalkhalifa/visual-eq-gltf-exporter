@@ -45,6 +45,32 @@ function convertDir(dir, out) {
       })
       await convertS3D(s3dName, type, s3d, outdir)
     }
+    fs.readdir(out, async (err, files) => {
+      if (err) throw new Error(err)
+      let zones = []
+      for (let f of files) {
+        if (f !== "characters" && f !== "items" && f !== ".keep") {
+          zones.push(f)
+        }
+      }
+      fs.writeFileSync(`${out}/zones.json`, JSON.stringify({zones}))
+      fs.readdir(`${out}/characters`, async (err, files) => {
+        if (err) throw new Error(err)
+        let races = []
+        for (let f of files.filter(value => value.indexOf('.glb') !== -1)) {
+          races.push(path.basename(f, '.glb'))
+        }
+        fs.writeFileSync(`${out}/characters/races.json`, JSON.stringify({races}))
+        fs.readdir(`${out}/items`, async (err, files) => {
+          if (err) throw new Error(err)
+          let items = []
+          for (let f of files.filter(value => value.indexOf('.glb') !== -1)) {
+            items.push(path.basename(f, '.glb'))
+          }
+          fs.writeFileSync(`${out}/items/items.json`, JSON.stringify({items}))
+        })
+      })
+    })
   })
 }
 
